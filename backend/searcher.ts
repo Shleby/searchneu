@@ -8,7 +8,7 @@ import elastic, { Elastic } from './elastic';
 import { Course, Section } from './database/models/index';
 import HydrateSerializer from './database/serializers/hydrateSerializer';
 import macros from './macros';
-import { FilterStruct, UserFilters } from './types';
+import { FilterStruct, UserFilters, SearchOutput } from './types';
 
 class Searcher {
   elastic: Elastic;
@@ -245,7 +245,7 @@ class Searcher {
    * @param  {integer} min    The index of first document to retreive
    * @param  {integer} max    The index of last document to retreive
    */
-  async search(query, termId, min, max, filters = {}) {
+  async search(query: string, termId: string, min: number, max: number, filters: UserFilters = {}): Promise<SearchOutput> {
     await this.initializeSubjects();
     const start = Date.now();
     const {

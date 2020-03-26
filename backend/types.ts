@@ -96,17 +96,15 @@ export interface MeetingTime {
 
 // ======= Search =========
 // this is a TODO list, not the final types
-export type ESReturn = any; 
+export type ESReturn = any; // TERRIBLE NAME, I just don't know what the return types of client.index and stuff like that are ...
 export type EsBulkData = any;
 export type EsMapping = any;
-// how should FilterStruct work if I don't know they keys?
-// that crazy lodash shit you saw
-export type FilterStruct = any;
-export type UserFilters = any;
 
 export type EsQuerySort = any;
 export type BoolOpts = any;
 export type EsAggregation = any;
+export type EsResults = any; // esResults that parseResults returns???
+export type SearchResult = any; // SearchResult form HydrateSerializer
 
 export interface EsQuery {
   from: number,
@@ -119,3 +117,39 @@ export interface EsQuery {
 export interface BoolQuery {
   bool: BoolOpts;
 };
+
+// this should be moved elsewhere, and is nearly the same as SearchOutput
+// how do you aggregate that information?
+export interface IntermediateOutput {
+  output: EsResults,
+  resultCount: number,
+  took: number,
+  aggregations: Record<string, EsAggregation>,
+};
+
+export interface SearchOutput {
+  searchContent: SearchResult[]
+  resultCount: number,
+  took: number, // not sure about this
+  aggregations: Record<string, EsAggregation>, // THIS IS TOTALLY WRONG
+};
+
+// ========= Filters =========
+// how should FilterStruct work if I don't know they keys?
+// that crazy lodash shit you saw
+// export type FilterStruct = any;
+export type UserFilters = any;
+
+export interface FilterStruct<Input> {
+  validate: (input: Input) => boolean,
+  create: (input: Input) => BoolOpts,
+  agg: false | string,
+};
+
+
+// dude I don't know what's going on here
+type GenericFilterPrelude<G, K extends keyof G> = {
+  [P in K]: FilterStruct<G[P]>
+};
+
+// completing this will link naturally into doing BoolOpts
