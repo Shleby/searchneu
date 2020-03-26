@@ -8,22 +8,24 @@ import { Client } from '@elastic/elasticsearch';
 import _ from 'lodash';
 import pMap from 'p-map';
 import macros from './macros';
+import { ESReturn, EsMapping, EsBulkData, EsQuery } from './types';
 
-const URL = macros.getEnvVariable('elasticURL') || 'http://localhost:9200';
+const URL: string = macros.getEnvVariable('elasticURL') || 'http://localhost:9200';
 const client = new Client({ node: URL });
 
 const BULKSIZE = 5000;
 
-class Elastic {
+export class Elastic {
+  CLASS_INDEX: string;
+  EMPLOYEE_INDEX: string;
+
   constructor() {
     // Because we export an instance of this class, put the constants on the instance.
     this.CLASS_INDEX = 'classes';
     this.EMPLOYEE_INDEX = 'employees';
-    // keep internal track of the available subjects
-    this.subjects = null;
   }
 
-  async isConnected() {
+  async isConnected(): Promise<boolean> {
     try {
       await client.ping();
     } catch (err) {
@@ -57,7 +59,8 @@ class Elastic {
    * @param  {Object} map       A map of document ids to document sources to create
    * TODO: same as below?
    */
-  async bulkIndexFromMap(indexName, map) {
+  async bulkIndexFromMap(indexName: string, map: EsBulkData): Promise<ESReturn> {
+    // TODO not sure what the type is here
     const chunks = _.chunk(Object.keys(map), BULKSIZE);
     return pMap(chunks, async (chunk, chunkNum) => {
       const bulk = [];
@@ -78,7 +81,8 @@ class Elastic {
    * @param  {Object} map       A map of document ids to document sources to update
    * TODO: does this need the Elastic serializer? why does this exist?
    */
-  async bulkUpdateFromMap(indexName, map) {
+  async bulkUpdateFromMap(indexName: string, map: EsBulkData): Promise<void> {
+    // TODO not sure what the type is here
     const bulk = [];
     for (const id of Object.keys(map)) {
       bulk.push({ update: { _id: id } });
@@ -87,36 +91,13 @@ class Elastic {
     await client.bulk({ index: indexName, body: bulk });
   }
 
-  /**
-   * Get a hashmap of ids to documents from a list of ids
-   * @param  {string} indexName Index to get from
-   * @param  {Array}  ids       Array of string ids to get
-   * @return {Object} The map between doc ids and doc source
-   * TODO: replace with Postgres?
-   */
-  async getMapFromIDs(indexName, ids) {
-    const got = await client.mget({
-      index: indexName,
-      type: '_doc',
-      body: {
-        ids: ids,
-      },
-    });
-    return got.body.docs.reduce((result, doc) => {
-      if (doc.found) {
-        result[doc._id] = doc._source;
-      }
-      return result;
-    }, {});
-  }
-
-  async query(index, from, size, body) {
+  async query(index: string, from: number, size: number, body: EsQuery): Promise<ESReturn> {
     return client.search({
       index: index, from: from, size: size, body: body,
     });
   }
 
-  async mquery(index, queries) {
+  async mquery(index: string, queries: EsQuery[]): Promise<ESReturn> {
     const multiQuery = [];
     for (const query of queries) {
       multiQuery.push({ index });

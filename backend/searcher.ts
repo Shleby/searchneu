@@ -4,12 +4,18 @@
  */
 
 import _ from 'lodash';
-import elastic from './elastic';
+import elastic, { Elastic } from './elastic';
 import { Course, Section } from './database/models/index';
 import HydrateSerializer from './database/serializers/hydrateSerializer';
 import macros from './macros';
+import { FilterStruct, UserFilters } from './types';
 
 class Searcher {
+  elastic: Elastic;
+  subjects: Set<string>;
+  filters: FilterStruct;
+  aggFilters: FilterStruct;
+
   constructor() {
     this.elastic = elastic;
     this.subjects = null;
@@ -18,7 +24,7 @@ class Searcher {
     this.AGG_RES_SIZE = 1000;
   }
 
-  static generateFilters() {
+  static generateFilters(): FilterStruct {
     // type validating functions
     const isString = (arg) => {
       return typeof arg === 'string';
@@ -82,7 +88,7 @@ class Searcher {
     };
   }
 
-  async initializeSubjects() {
+  async initializeSubjects(): Promise<void> {
     if (!this.subjects) {
       this.subjects = new Set((await Course.aggregate('subject', 'distinct', { plain: false })).map((hash) => hash.distinct.toUpperCase()));
     }
@@ -91,7 +97,7 @@ class Searcher {
   /**
    * return a set of all existing subjects of classes
    */
-  getSubjects() {
+  getSubjects(): Set<string> {
     return this.subjects;
   }
 
@@ -109,7 +115,7 @@ class Searcher {
    *
    * @param {object} filters The json object represting all filters on classes
    */
-  validateFilters(filters) {
+  validateFilters(filters): UserFilters {
     const validFilters = {};
     Object.keys(filters).forEach((currFilter) => {
       if (!(currFilter in this.filters)) macros.log('Invalid filter key.', currFilter);

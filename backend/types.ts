@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // An NU employee
 export interface Employee {
   name: string,
@@ -85,3 +86,36 @@ export interface MeetingTime {
   start: number,
   end: number,
 }
+
+/*
+ * This file is part of Search NEU and licensed under AGPL3.
+ * See the license file in the root folder for details.
+ *
+ * ONLY PUT COMMONLY USED TYPES HERE
+ */
+
+// ======= Search =========
+// this is a TODO list, not the final types
+export type ESReturn = any; 
+export type EsBulkData = any;
+export type EsMapping = any;
+// how should FilterStruct work if I don't know they keys?
+// that crazy lodash shit you saw
+export type FilterStruct = any;
+export type UserFilters = any;
+
+export type EsQuerySort = any;
+export type BoolOpts = any;
+export type EsAggregation = any;
+
+export interface EsQuery {
+  from: number,
+  size: number,
+  sort: EsQuerySort,
+  query: BoolQuery
+  aggregations?: EsAggregation
+};
+
+export interface BoolQuery {
+  bool: BoolOpts;
+};
