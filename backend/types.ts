@@ -106,17 +106,67 @@ export type EsAggregation = any;
 export type EsResults = any; // esResults that parseResults returns???
 export type SearchResult = any; // SearchResult form HydrateSerializer
 
+// ======== Queries ==========
+
 export interface EsQuery {
   from: number,
   size: number,
   sort: EsQuerySort,
-  query: BoolQuery
+  query: QueryNode,
   aggregations?: EsAggregation
 };
 
+// every query is either a leaf query or a bool query
+export type QueryNode = BoolQuery | LeafQuery;
+
 export interface BoolQuery {
-  bool: BoolOpts;
+  bool: BoolType;
 };
+
+export type BoolType = MustQuery | ShouldQuery | FilterQuery;
+
+// THESE ARE THE SAME. The only difference is what string shows up first.
+export interface MustQuery {
+  must: Array<QueryNode>;
+};
+
+export interface ShouldQuery {
+  should: OneOrMany<QueryNode>;
+};
+
+export interface FilterQuery {
+  filter: OneOrMany<QueryNode>;
+};
+
+export type LeafQuery = TermQuery | TermsQuery | ExistsQuery | MultiMatchQuery;
+
+export interface TermQuery {
+  term: FieldQuery
+}
+
+export interface TermsQuery {
+  terms: FieldQuery
+}
+
+export interface MultiMatchQuery {
+  query: string,
+  type: string,
+  fuzziness: string,
+  fields: string[]
+}
+
+export interface ExistsQuery {
+  exists: { field: string };
+}
+
+// don't like the any
+export interface FieldQuery {
+  [fieldName: string]: any;
+}
+
+type OneOrMany<T> = T | T[];
+
+
 
 // this should be moved elsewhere, and is nearly the same as SearchOutput
 // how do you aggregate that information?
@@ -128,7 +178,7 @@ export interface IntermediateOutput {
 };
 
 export interface SearchOutput {
-  searchContent: SearchResult[]
+  searchContent: SearchResult[],
   resultCount: number,
   took: number, // not sure about this
   aggregations: Record<string, EsAggregation>, // THIS IS TOTALLY WRONG
@@ -137,7 +187,6 @@ export interface SearchOutput {
 // ========= Filters =========
 // how should FilterStruct work if I don't know they keys?
 // that crazy lodash shit you saw
-// export type FilterStruct = any;
 export type UserFilters = any;
 
 export interface FilterStruct<Input> {
@@ -146,16 +195,15 @@ export interface FilterStruct<Input> {
   agg: false | string,
 };
 
-// what I want
+
+type ValidFilterInput = string | string[] | boolean;
+
+// will revisit this, don't like the ValidFilterInput pattern
+export type FilterPrelude = Record<string, FilterStruct<ValidFilterInput>>;
+
+
+/*
 type ReallyYes<T extends { [key: string]: any; }, K extends keyof T> = {
   [P in K]: FilterStruct<T[P]>
 };
-
-
-
-// dude I don't know what's going on here
-type GenericFilterPrelude<G, K extends keyof G> = {
-  [P in K]: FilterStruct<G[P]>
-};
-
-// completing this will link naturally into doing BoolOpts
+*/
