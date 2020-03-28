@@ -146,6 +146,12 @@ export interface FilterStruct<Input> {
   agg: false | string,
 };
 
+// what I want
+type ReallyYes<T extends { [key: string]: any; }, K extends keyof T> = {
+  [P in K]: FilterStruct<T[P]>
+};
+
+
 
 // dude I don't know what's going on here
 type GenericFilterPrelude<G, K extends keyof G> = {
