@@ -95,15 +95,31 @@ export interface MeetingTime {
  */
 
 // ======= Search =========
-// this is a TODO list, not the final types
-export type ESReturn = any; // TERRIBLE NAME, I just don't know what the return types of client.index and stuff like that are ...
-export type EsBulkData = any;
-export type EsMapping = any;
 
+export type EsBulkData = any;
 export type BoolOpts = any;
 export type EsAggregation = any;
-export type EsResults = any; // esResults that parseResults returns???
 export type SearchResult = any; // SearchResult form HydrateSerializer
+
+// ======== Results ==========
+export type EsResult = any;
+export type EsMultiResult = {
+  body: {
+    responses: EsResultBody[]
+  }
+};
+
+export interface EsResultBody {
+  took: number,
+  hits: {
+    hits: {
+      // blah
+    }
+  }
+}
+
+export interface EsResultAgg {
+};
 
 // ======== Queries ==========
 
@@ -194,7 +210,7 @@ type OneOrMany<T> = T | T[];
 // this should be moved elsewhere, and is nearly the same as SearchOutput
 // how do you aggregate that information?
 export interface IntermediateOutput {
-  output: EsResults,
+  output: EsResult,
   resultCount: number,
   took: number,
   aggregations: Record<string, EsAggregation>,
