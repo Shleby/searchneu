@@ -100,7 +100,6 @@ export type ESReturn = any; // TERRIBLE NAME, I just don't know what the return 
 export type EsBulkData = any;
 export type EsMapping = any;
 
-export type EsQuerySort = any;
 export type BoolOpts = any;
 export type EsAggregation = any;
 export type EsResults = any; // esResults that parseResults returns???
@@ -111,7 +110,7 @@ export type SearchResult = any; // SearchResult form HydrateSerializer
 export interface EsQuery {
   from: number,
   size: number,
-  sort: EsQuerySort,
+  sort: SortQuery,
   query: QueryNode,
   aggregations?: EsAggregation
 };
@@ -127,7 +126,7 @@ export type BoolType = MustQuery | ShouldQuery | FilterQuery;
 
 // THESE ARE THE SAME. The only difference is what string shows up first.
 export interface MustQuery {
-  must: Array<QueryNode>;
+  must: OneOrMany<QueryNode>;
 };
 
 export interface ShouldQuery {
@@ -138,7 +137,11 @@ export interface FilterQuery {
   filter: OneOrMany<QueryNode>;
 };
 
-export type LeafQuery = TermQuery | TermsQuery | ExistsQuery | MultiMatchQuery;
+export type LeafQuery = TermQuery 
+                      | TermsQuery 
+                      | ExistsQuery 
+                      | MultiMatchQuery 
+                      | typeof MATCH_ALL_QUERY;
 
 export interface TermQuery {
   term: FieldQuery
@@ -149,11 +152,15 @@ export interface TermsQuery {
 }
 
 export interface MultiMatchQuery {
-  query: string,
-  type: string,
-  fuzziness: string,
-  fields: string[]
+  multi_match: {
+    query: string,
+    type: string,
+    fuzziness: string,
+    fields: string[]
+  }
 }
+
+export const MATCH_ALL_QUERY = { match_all: {} };
 
 export interface ExistsQuery {
   exists: { field: string };
@@ -162,6 +169,22 @@ export interface ExistsQuery {
 // don't like the any
 export interface FieldQuery {
   [fieldName: string]: any;
+}
+
+export type SortQuery = [string, SortStruct];
+
+// I hate this name
+export interface SortStruct {
+  [fieldName: string]: {
+    order: string,
+    unmapped_type: string
+  }
+}
+
+export interface QueryAgg {
+  [aggName: string]: {
+    terms: { field: string }
+  }
 }
 
 type OneOrMany<T> = T | T[];
@@ -187,7 +210,13 @@ export interface SearchOutput {
 // ========= Filters =========
 // how should FilterStruct work if I don't know they keys?
 // that crazy lodash shit you saw
-export type UserFilters = any;
+
+
+// what do FilterInput look like?
+
+export type FilterInput = {
+  [filterName: string]: ValidFilterInput
+}
 
 export interface FilterStruct<Input> {
   validate: (input: Input) => boolean,
