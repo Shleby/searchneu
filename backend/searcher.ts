@@ -11,7 +11,7 @@ import macros from './macros';
 import { 
   EsQuery, QueryNode, QueryAgg, 
   ExistsQuery, TermsQuery, TermQuery, LeafQuery, MATCH_ALL_QUERY, SortStruct,
-  FilterInput, FilterPrelude, EsResultBody,
+  FilterInput, FilterPrelude, EsResultBody, EsMultiResult,
 } from './types';
 
 class Searcher {
@@ -234,14 +234,17 @@ class Searcher {
     return this.parseResults(results.body.responses, Object.keys(this.aggFilters));
   }
 
-  parseResults(results: EsResultBody[], filters: string[]) {
+  async interpretResults(results: EsResultBody[], filters: string[]): Promise<any> {
+    const searchContent: any = await (new HydrateSerializer(Section)).bulkSerialize(results[0].hits.hits);
+    const aggregations: any = _.fromPairs(filters.map((filter, idx) => {
+      return [filter, results[idx + 1].aggregations[filter].buckets.map((aggVal) => { return { value: aggVal.key, count: aggVal.doc_count } })];
+    }));
+
     return {
-      output: results[0].hits.hits,
+      searchContent,
+      aggregations,
       resultCount: results[0].hits.total.value,
       took: results[0].took,
-      aggregations: _.fromPairs(filters.map((filter, idx) => {
-        return [filter, results[idx + 1].aggregations[filter].buckets.map((aggVal) => { return { value: aggVal.key, count: aggVal.doc_count } })];
-      })),
     };
   }
 
@@ -252,7 +255,7 @@ class Searcher {
    * @param  {integer} min    The index of first document to retreive
    * @param  {integer} max    The index of last document to retreive
    */
-  async search(query: string, termId: string, min: number, max: number, filters: FilterInput = {}): Promise<SearchOutput> {
+  async search(query: string, termId: string, min: number, max: number, filters: FilterInput = {}): Promise<any> {
     await this.initializeSubjects();
     const start = Date.now();
     // this can be re-written in a way that's less bad

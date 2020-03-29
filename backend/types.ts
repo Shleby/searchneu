@@ -94,12 +94,13 @@ export interface MeetingTime {
  * ONLY PUT COMMONLY USED TYPES HERE
  */
 
-// ======= Search =========
+// TODO
 export type EsMapping = any;
 export type EsBulkData = any;
 
 // ======== Results ==========
-export type EsResult = any;
+export type EsResult = any; // is this one even necessary?
+
 export type EsMultiResult = {
   body: {
     responses: EsResultBody[]
@@ -209,9 +210,6 @@ export interface QueryAgg {
 
 type OneOrMany<T> = T | T[];
 
-
-
-
 // ========= Filters =========
 
 export type FilterInput = {
@@ -227,14 +225,4 @@ export interface FilterStruct<Input> {
 
 type ValidFilterInput = string | string[] | boolean;
 
-// will revisit this, don't like the ValidFilterInput pattern
 export type FilterPrelude = Record<string, FilterStruct<ValidFilterInput>>;
-
-// TODO
-// MISSING TYPES:
-// 1. Mapping
-// 2. results from elasticsearch
-// 3. results from Postgres
-// After that:
-// 1. rename types appropriately
-// 2. add interpretation statements
