@@ -95,11 +95,8 @@ export interface MeetingTime {
  */
 
 // ======= Search =========
-
+export type EsMapping = any;
 export type EsBulkData = any;
-export type BoolOpts = any;
-export type EsAggregation = any;
-export type SearchResult = any; // SearchResult form HydrateSerializer
 
 // ======== Results ==========
 export type EsResult = any;
@@ -112,14 +109,21 @@ export type EsMultiResult = {
 export interface EsResultBody {
   took: number,
   hits: {
+    total: { value: number },
     hits: {
-      // blah
-    }
+      // TODO blah
+      // EsSerializer types
+    },
+    value: number,
   }
+  aggregations: AggResults
 }
 
-export interface EsResultAgg {
-};
+export interface AggResults {
+  [aggName: string]: {
+    buckets: Array<{ key: string, doc_count: number }>
+  }
+}
 
 // ======== Queries ==========
 
@@ -128,7 +132,7 @@ export interface EsQuery {
   size: number,
   sort: SortQuery,
   query: QueryNode,
-  aggregations?: EsAggregation
+  aggregations?: QueryAgg
 };
 
 // every query is either a leaf query or a bool query
@@ -207,28 +211,8 @@ type OneOrMany<T> = T | T[];
 
 
 
-// this should be moved elsewhere, and is nearly the same as SearchOutput
-// how do you aggregate that information?
-export interface IntermediateOutput {
-  output: EsResult,
-  resultCount: number,
-  took: number,
-  aggregations: Record<string, EsAggregation>,
-};
-
-export interface SearchOutput {
-  searchContent: SearchResult[],
-  resultCount: number,
-  took: number, // not sure about this
-  aggregations: Record<string, EsAggregation>, // THIS IS TOTALLY WRONG
-};
 
 // ========= Filters =========
-// how should FilterStruct work if I don't know they keys?
-// that crazy lodash shit you saw
-
-
-// what do FilterInput look like?
 
 export type FilterInput = {
   [filterName: string]: ValidFilterInput
@@ -236,7 +220,7 @@ export type FilterInput = {
 
 export interface FilterStruct<Input> {
   validate: (input: Input) => boolean,
-  create: (input: Input) => BoolOpts,
+  create: (input: Input) => LeafQuery,
   agg: false | string,
 };
 
@@ -246,9 +230,11 @@ type ValidFilterInput = string | string[] | boolean;
 // will revisit this, don't like the ValidFilterInput pattern
 export type FilterPrelude = Record<string, FilterStruct<ValidFilterInput>>;
 
-
-/*
-type ReallyYes<T extends { [key: string]: any; }, K extends keyof T> = {
-  [P in K]: FilterStruct<T[P]>
-};
-*/
+// TODO
+// MISSING TYPES:
+// 1. Mapping
+// 2. results from elasticsearch
+// 3. results from Postgres
+// After that:
+// 1. rename types appropriately
+// 2. add interpretation statements

@@ -8,7 +8,7 @@ import { Client } from '@elastic/elasticsearch';
 import _ from 'lodash';
 import pMap from 'p-map';
 import macros from './macros';
-import { ESReturn, EsMapping, EsBulkData, EsQuery } from './types';
+import { EsBulkData, EsQuery, EsMapping, EsMultiResult, EsResult } from './types';
 
 const URL: string = macros.getEnvVariable('elasticURL') || 'http://localhost:9200';
 const client = new Client({ node: URL });
@@ -90,13 +90,13 @@ export class Elastic {
     await client.bulk({ index: indexName, body: bulk });
   }
 
-  async query(index: string, from: number, size: number, body: EsQuery): Promise<ESReturn> {
+  async query(index: string, from: number, size: number, body: EsQuery): Promise<EsResult> {
     return client.search({
       index: index, from: from, size: size, body: body,
     });
   }
 
-  async mquery(index: string, queries: EsQuery[]): Promise<ESReturn> {
+  async mquery(index: string, queries: EsQuery[]): Promise<EsMultiResult> {
     const multiQuery = [];
     for (const query of queries) {
       multiQuery.push({ index });

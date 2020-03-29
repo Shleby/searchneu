@@ -8,7 +8,11 @@ import elastic, { Elastic } from './elastic';
 import { Course, Section } from './database/models/index';
 import HydrateSerializer from './database/serializers/hydrateSerializer';
 import macros from './macros';
-import { FilterInput, SearchOutput, LeafQuery, MATCH_ALL_QUERY, TermQuery, FilterPrelude, QueryNode, QueryAgg, SortQuery, ExistsQuery, TermsQuery, EsQuery, SortStruct } from './types';
+import { 
+  EsQuery, QueryNode, QueryAgg, 
+  ExistsQuery, TermsQuery, TermQuery, LeafQuery, MATCH_ALL_QUERY, SortStruct,
+  FilterInput, FilterPrelude, EsResultBody,
+} from './types';
 
 class Searcher {
   elastic: Elastic;
@@ -51,7 +55,6 @@ class Searcher {
       return { exists: { field: 'sections' } };
     };
 
-    // TODO just use the terms query!!!!!!! wtfff
     const getNUpathFilter = (selectedNUpaths: string[]): TermsQuery => {
       return { terms: { 'class.nupath.keyword': selectedNUpaths } };
     };
@@ -118,9 +121,13 @@ class Searcher {
   validateFilters(filters: FilterInput): FilterInput {
     const validFilters: FilterInput = {};
     Object.keys(filters).forEach((currFilter) => {
-      if (!(currFilter in this.filters)) macros.log('Invalid filter key.', currFilter);
-      else if (!(this.filters[currFilter].validate(filters[currFilter]))) macros.log('Invalid filter value type.', currFilter);
-      else validFilters[currFilter] = filters[currFilter];
+      if (!(currFilter in this.filters)) {
+        macros.log('Invalid filter key.', currFilter);
+      } else if (!(this.filters[currFilter].validate(filters[currFilter]))) {
+        macros.log('Invalid filter value type.', currFilter);
+      } else {
+        validFilters[currFilter] = filters[currFilter];
+      }
     });
     return validFilters;
   }
@@ -227,7 +234,7 @@ class Searcher {
     return this.parseResults(results.body.responses, Object.keys(this.aggFilters));
   }
 
-  parseResults(results, filters: string[]) {
+  parseResults(results: EsResultBody[], filters: string[]) {
     return {
       output: results[0].hits.hits,
       resultCount: results[0].hits.total.value,
