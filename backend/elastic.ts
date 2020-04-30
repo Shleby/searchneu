@@ -38,7 +38,7 @@ export class Elastic {
    * @param  {string} indexName The index to insert into
    * @param  {Object} mapping   The new elasticsearch index mapping(schema)
    */
-  async resetIndex(indexName, mapping) {
+  async resetIndex(indexName: string, mapping: EsMapping): Promise<any> {
     const exists = (await client.indices.exists({ index: indexName })).statusCode === 200;
     if (exists) {
       // Clear out the index.

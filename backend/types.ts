@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // An NU employee
 export interface Employee {
   name: string,
@@ -94,8 +93,7 @@ export interface MeetingTime {
  * ONLY PUT COMMONLY USED TYPES HERE
  */
 
-// TODO
-export type EsMapping = any;
+export type EsMapping = Record<string, any>;
 export type EsBulkData = any;
 
 // ======== Results ==========
